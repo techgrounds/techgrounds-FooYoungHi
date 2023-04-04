@@ -1,1 +1,2 @@
-echo "$(((RANDOM % 10 ) +1))" >> /home/danny/techgrounds/rng.txt
+nummer="$(((RANDOM % 10 ) +1))"
+echo $nummer >> /home/danny/techgrounds/rng.txt
