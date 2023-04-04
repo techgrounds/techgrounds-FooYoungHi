@@ -1,0 +1,19 @@
+
+# [Onderwerp]
+Een script dat willekeurige nummers opslaat in textbestand.
+
+## Key-terms
+Geen.
+
+## Opdracht
+De opdracht was om een script te maken die een willekeurig nummer kiest tussen 1 en 10 en deze opslaat in een textbestand. Bij herhaaldelijk uitvoeren van het script moet het nummer aangevuld worden in het document.
+
+### Gebruikte bronnen
+https://www.tomordonez.com/generate-random-number-linux/
+
+### Ervaren problemen
+Geen.
+
+### Resultaat
+Het script is getest en werkt. De resultaten worden in rng.txt geschreven in de techgrounds map.
+Het script staat in de 00_include map als rng.sh.
