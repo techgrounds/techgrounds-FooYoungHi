@@ -13,12 +13,17 @@ https://tecadmin.net/get-current-date-and-time-in-bash/
 https://serverfault.com/questions/319887/write-current-date-time-and-number-of-files-to-a-file
 https://www.freecodecamp.org/news/cron-jobs-in-linux/
 https://askubuntu.com/questions/609850/what-is-the-correct-way-to-edit-a-crontab-file
+https://crontab.guru
 
 ### Ervaren problemen
 Ik liep vast bij het script zelf. Vooral het schrijven naar het bestand werkte niet. Nadat ik de ```date +"%D %T"``` had aangepast in ```$(date +"%D %T")``` werkte het wel.
-Ik had eerst de cronjob niet goed ingevuld, waardoor het niet werkte. Blijkt dat er voor een cronjob ook nog ```*/``` hoort te staan. Wat hiervan precies de betekenis is wil ik nog opzoeken.
+Ik had eerst de cronjob niet goed ingevuld, waardoor het niet werkte. Ik dacht dat ik voor de 1 een ```*/``` moest plaatsen, want toen werkt het wel. 
+Na overleg met het team en het raadplegen van crontab.guru zag ik echter dat de ```*/1``` betekende dat het elke eerste seconde van de minuut het script runde.  
+Eerst had ik als eerste getal een 1 staan. Dit hield in dat het elke dag om 0:01 zou draaien. 
+Nu is de  planning * * * * * , waardoor het elke minuut uit wordt gevoerd.
 
 ### Resultaat
-De cronjob runt met succes en in het bestand ($HOME/datetime.txt) wordt netjes elke minuut de tijd en datum geupdate. Het script staat in de 00_includes map als datetime.sh.
+De cronjob runt met succes en in het bestand ($HOME/datetime.txt) wordt netjes elke minuut de tijd en datum geupdate.  
+Het script staat in de 00_includes map als datetime.sh.
 Een screenshot van datetime.txt staat onder LNX-08-1.png in dezelfde map.
 De tijd van de linux VM staat nog op GMT, dus loopt 2 uur achter.
