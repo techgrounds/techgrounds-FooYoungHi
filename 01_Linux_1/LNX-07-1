@@ -1,0 +1,29 @@
+# [Onderwerp]
+Het toevoegen van een map met scripts aan $PATH
+
+## Key-terms
+Script: Een uitvoerbaar bestandje waar regels code instaan die worden uitgevoerd als deze wordt geopend. Een script kan veel tijd schelen als het gaat om taken die vaak herhaald dienen te worden. Bij het opzetten van een nieuw systeem zou je bijvoorbeeld met een script alle noodzakeljike programma's automatisch kunnen installeren door enkel dat script te starten.
+
+$PATH = Variable die wijst naar mappen waar uitvoerbare commands in staan. Je kan mappen toevoegen aan $PATH door een regel code toe te voegen in .bashrc. Dit geldt dan alleen voor de huidige user. Wil je de map voor alle users toevoegen, dan moet .profile aangepast worden in plaats van .bashrc.
+
+--no-pager -full: dit geeft aan dat bash de hele lijst in 1 keer plaatst, zonder onderbrekingen waar je op moet doorklikken.
+
+## Opdracht
+- Maak een map 'scripts'
+- Voeg deze map toe aan $PATH
+- Maak een script die, wanneer je hem runt, een regel toevoegd aan een tekstbestand.
+- Maak een script dat de httpd package installeert, hem activeert, het activeert en het aanzet.
+
+### Gebruikte bronnen
+[$PATH:](https://phoenixnap.com/kb/linux-add-to-path)
+[Apache/httpd](https://www.javatpoint.com/install-httpd-ubuntu)
+[--no-pager](https://askubuntu.com/questions/747156/how-to-avoid-horizontal-scrolling-in-systemctl-status/747158#747158)
+
+### Ervaren problemen
+Ik had eerst het probleem dat $PATH de aangewezen folder niet kon vinden. Dit is opgelost door in plaats van /home/danny/scripts/, $HOME/scripts te gebruiken. Na een reboot werkte het wel.
+Waar ik daarna tegenaan liep was permissions. Ik was vergeten om de file executable te maken. Nadat ik dit had gedaan, werkte het prima.
+
+### Resultaat
+De map scripts is aangemaakt, permanent toegevoegd aan $PATH en het script dat een regel toevoegd aan een textbestand is getest en werkt.
+Het script dat Apache2/httpd installeert is geschreven en met succes getest.
+Beide scripts (appendline.sh & apache2.sh) staan in de 00_includes map.
