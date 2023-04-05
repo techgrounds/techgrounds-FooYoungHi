@@ -1,0 +1,24 @@
+# [Onderwerp]
+Experimenteren met conditions
+
+## Key-terms
+if: Na 'if' volgt een voorwaarde. Als de voorwaarde klopt, dan gaat het verder naar 'then'. Klopt het niet, dan verder gaan bij 'else'.
+
+then: Hier achter staat de opdracht die moet worden uitgevoerd als de 'if' klopt.
+
+else: Als de 'if' niet klopt, moet worden uitgevoerd wat hierna volgt als opdracht.
+
+-gt: Dit staat voor 'greater than' en slaat op het getal (of variabele met getal) dat er na volgt.
+```if [ $variable -gt 5 ] then .... ```
+
+## Opdracht
+De opdracht was om een script te maken die een willekeurig nummer te genereert. Wanneer deze boven de 5 was in een text bestand te zetten (append). Is het nummer gelijk aan, of onder de 5, dan moet er een tekst in het bestand worden gezet.
+
+### Gebruikte bronnen
+https://www.digitalocean.com/community/tutorials/if-else-in-shell-scripts
+
+### Ervaren problemen
+Ik ben het langste bezig geweest met het oplossen van een 'unexpected end of file' error. Dit lag aan het goed opmaken van de code en en te sluiten met 'fi'.
+
+### Resultaat
+Het script doet wat het moet doen en zet de uitkomst van het scipt in het textbestand png2.txt. Screenshot is te vinden in de 00_includes map als LNX-07-3.png. Het script is in de zelfde map te vinden als rng2.sh.
