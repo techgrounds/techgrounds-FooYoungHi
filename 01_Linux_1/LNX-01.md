@@ -1,5 +1,4 @@
-# [Onderwerp]
-Een SSH connectie maken met Linux
+# Een SSH connectie maken met Linux
 
 ## Key-terms
 SSH: *S*ecure *Sh*ell. Een protocol om veilig een verbinding te maken met een apparaat op afstand.
