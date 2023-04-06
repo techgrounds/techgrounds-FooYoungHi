@@ -1,5 +1,4 @@
-# [Onderwerp]
-Telnet daemon status veranderen.
+# Telnet daemon status veranderen.
 
 ## Key-terms
 Telnet: Een verouderde, onveilige manier om verbinding te maken met een ander apparaat. De data wordt onbeveiligd als 'plain text' verzonden, dus erg onveilig. Het is vervangen door SSH, wat gebruik maakt van encryptie.
