@@ -18,4 +18,4 @@ Na een chown 0600 bestandsnaam.pem te hebben uitgevoerd in de terminal kon ik zo
 ### Resultaat
 Ik kon inloggen op de VM en met de command de user 'danny' geverifiëerd.
 Screenshot [LNX-01.png](/00_includes/LNX-01.png) staat in de 00_includes folder. 
-![LNX-01.png](00_includes/LNX-01.png)
+![LNX-01.png](/00_includes/LNX-01.png)
