@@ -2,8 +2,8 @@
 
 ## Key-terms
 *echo*: Hiermee geef je aan dat je een output wilt van wat hierna komt. *echo Hello World!*.  
-*grep*: Hiermee filter je een bestand op het zoekwoord wat er op volgt. *grep techgrounds*
-'>': Hiermee geef je aan dat het resultaat van de 'echo' moet worden geschreven in een document. Als er al iets in het document staat wordt het overschreven.
+*grep*: Hiermee filter je een bestand op het zoekwoord wat er op volgt. *grep techgrounds*  
+'>': Hiermee geef je aan dat het resultaat van de 'echo' moet worden geschreven in een document. Als er al iets in het document staat wordt het overschreven.  
 '>>': Hiermee geef je aan dat het resultaat van de 'echo' moet worden toegevoegd in een document op een nieuwe regel.
 
 ## Opdracht
