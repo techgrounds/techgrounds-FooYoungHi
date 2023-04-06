@@ -1,7 +1,7 @@
 # Een nieuwe user aanmaken.
 
 ## Key-terms
-*useradd*: met deze command geef je aan dat je een nieuwe user wilt aanmaken. Dit kan alleen met sudo of als je bent ingelogd als root.
+*useradd*: met deze command geef je aan dat je een nieuwe user wilt aanmaken. Dit kan alleen met sudo of als je bent ingelogd als root.  
 *passwd*: Met deze command geef je aan dat je een password wilt toewijzen aan een user. Dit werk alleen met sudo of als root.
 
 ## Opdracht
