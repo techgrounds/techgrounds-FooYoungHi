@@ -16,4 +16,6 @@ https://www.redhat.com/sysadmin/linux-file-permissions-explained
 Geen.
 
 ### Resultaat
-Het bestand is aangemaakt en meerdere malen aangepast. Nu is het bestand in eigendom van root en group admin. Screenshot met de stappen en resultaten staat als LNX-05.png in de 00_includes folder.
+Het bestand is aangemaakt en meerdere malen aangepast. Nu is het bestand in eigendom van root en group admin. Screenshot met de stappen en resultaten staat als [LNX-05.png](/00_includes/LNX-05.png) in de 00_includes folder.
+
+![](/00_includes/LNX-05.png)
