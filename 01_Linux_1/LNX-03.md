@@ -17,4 +17,6 @@ https://www.digitalocean.com/community/tutorials/an-introduction-to-linux-i-o-re
 Ik dacht te moeilijk, waardoor ik bij het veranderen van de output naar een bestand een complexe code had gebruikt.
 
 ### Resultaat
-De output van het gefilterde bestand staat in techgrounds.txt. Screenshot staat in de 00_includes folder als LNX-03.png.
+De output van het gefilterde bestand staat in techgrounds.txt. Screenshot staat in de 00_includes folder als [LNX-03.png](/00_includes/LNX-03.png).
+
+![](/00_includes/LNX-03.png)
