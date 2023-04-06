@@ -1,5 +1,4 @@
-# [Onderwerp]
-Een nieuwe user aanmaken.
+# Een nieuwe user aanmaken.
 
 ## Key-terms
 *useradd*: met deze command geef je aan dat je een nieuwe user wilt aanmaken. Dit kan alleen met sudo of als je bent ingelogd als root.
