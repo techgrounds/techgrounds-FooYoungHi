@@ -22,4 +22,6 @@ Het grootste probleem was het uitvinden welke daemon gebruikt moest worden. De t
 Na veel zoeken en overleg kon het niet anders zijn dat de inetd daemon. Daarna ging de opdracht zonder moeite.
 
 ### Resultaat
-Screenshot LNX-06.png staat in de 00_includes map.
+Screenshot [LNX-06.png](/00_includes/LNX-06.png) staat in de 00_includes map.
+
+![](/00_includes/LNX-06.png)
