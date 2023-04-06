@@ -1,5 +1,4 @@
-# [Onderwerp]
-Aanmaak 'techgrounds' map in Linux VM.
+# Aanmaak 'techgrounds' map in Linux VM.
 
 ## Key-terms
 *cd*: Change Directory. Hiermee kan je navgeren in de mappenstructuur. bijv. *cd /home/danny* breng me naar de Home folder van user danny.
