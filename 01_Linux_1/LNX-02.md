@@ -17,4 +17,5 @@ Ik kon in de /home/danny directory geen folders vinden die in de opdracht waren 
 
 ### Resultaat
 Ik heb in de home-folder een map aangemaakt genaamd 'techgrounds' en hier een text bestand aangemaakt met wat text.
-Screenshot staat in de 00_includes map.
+Screenshot staat in de 00_includes map als [LNX-02.png](/00_includes/LNX-02.png).
+![](/00_includes/LNX-02.png)
