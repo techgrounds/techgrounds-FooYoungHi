@@ -7,7 +7,9 @@
 
 **systemctl**: System Control. Een command waarmee je het systeem en services van systemd kan bekijken en beïnvloeden. Je kan de status van services en daemons bekijken, deze starten, stoppen en herstarten en instellen dat ze moeten opstarten met het systeem, of juist niet.
 
-**systemd**: Het allereerste proces wat Linux draait. Alle daemons worden door systemd gestart.
+**systemd**: Het allereerste proces wat Linux draait. Alle daemons worden door systemd gestart.  
+
+**PID**: **P**rocess **Id**entifier. Elk proces heeft een eigen unieke nummer dat wordt toegewezen door systemd.
 
 
 ## Opdracht
