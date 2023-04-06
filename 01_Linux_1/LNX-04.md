@@ -17,4 +17,5 @@ Geen.
 
 ### Resultaat
 User techgrounds is aangemaakt met password test123, lid van de admin en sudo groups.
-Screenshot LNX-04.png staat in de 00_includes folder.
+Screenshot staat hier onder, en [LNX-04.png](/00_includes/LNX-04.png) staat in de 00_includes folder.
+![](/00_includes/LNX-04.png)
