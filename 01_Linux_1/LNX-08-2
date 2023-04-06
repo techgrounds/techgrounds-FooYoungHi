@@ -15,4 +15,4 @@ https://crontab.guru
 Bij het maken van de cronjob kreeg ik steeds een bad minute error. Ik dacht dat ik een  ```*/```  moest gebruiken voor de inplanning. In overleg met team en raadplegen van crontab.guru kwam ik er achter dat ik ook de minuten moest invullen, omdat het anders elke minuut van de zondag geupdate zou worden.
 
 ### Resultaat
-Het script wordt nu elke zondag om 0:00 uitgevoerd. Het script staat in de map 00_includes als diskspace.sh.
+Het script wordt nu elke zondag om 0:00 uitgevoerd. Het script staat in de map 00_includes als [diskspace.sh](/00_includes/diskspace.sh).
