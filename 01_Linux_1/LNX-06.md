@@ -9,7 +9,7 @@
 
 **systemd**: Het allereerste proces wat Linux draait. Alle daemons worden door systemd gestart.  
 
-**PID**: **P**rocess **Id**entifier. Elk proces heeft een eigen unieke nummer dat wordt toegewezen door systemd.
+**PID**: **P**rocess **Id**entification. Elk proces heeft een eigen unieke nummer dat wordt toegewezen door systemd.
 
 
 ## Opdracht
