@@ -1,5 +1,4 @@
-# [Onderwerp]
-File permissions veranderen
+# File permissions veranderen
 
 ## Key-terms
 *chmod*: Change Modifier. Hiermee kan je de file permissions aanpassen.
