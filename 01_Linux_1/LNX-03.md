@@ -1,5 +1,4 @@
-# [Onderwerp]
-Experimenteren met output redirects.
+# Experimenteren met output redirects.
 
 ## Key-terms
 *echo*: Hiermee geef je aan dat je een output wilt van wat hierna komt. *echo Hello World!*.
