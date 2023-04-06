@@ -1,13 +1,13 @@
 # Telnet daemon status veranderen.
 
 ## Key-terms
-Telnet: Een verouderde, onveilige manier om verbinding te maken met een ander apparaat. De data wordt onbeveiligd als 'plain text' verzonden, dus erg onveilig. Het is vervangen door SSH, wat gebruik maakt van encryptie.
+**Telnet**: Een verouderde, onveilige manier om verbinding te maken met een ander apparaat. De data wordt onbeveiligd als 'plain text' verzonden, dus erg onveilig. Het is vervangen door SSH, wat gebruik maakt van encryptie.
 
-Daemon: Een service die op de achtergrond draait. Je herkent ze aan de 'd' achter de naam van het proces. Bijv. systemd, httpd, telnetd.
+**Daemon**: Een service die op de achtergrond draait. Je herkent ze aan de 'd' achter de naam van het proces. Bijv. systemd, httpd, telnetd.
 
-systemctl: System Control. Een command waarmee je het systeem en services van systemd kan bekijken en beïnvloeden. Je kan de status van services en daemons bekijken, deze starten, stoppen en herstarten en instellen dat ze moeten opstarten met het systeem, of juist niet.
+**systemctl**: System Control. Een command waarmee je het systeem en services van systemd kan bekijken en beïnvloeden. Je kan de status van services en daemons bekijken, deze starten, stoppen en herstarten en instellen dat ze moeten opstarten met het systeem, of juist niet.
 
-systemd: Het allereerste proces wat Linux draait. Alle daemons worden door systemd gestart.
+**systemd**: Het allereerste proces wat Linux draait. Alle daemons worden door systemd gestart.
 
 
 ## Opdracht
