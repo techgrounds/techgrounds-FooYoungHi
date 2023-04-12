@@ -34,7 +34,7 @@ Official Cert Guide CCNA 200-301 Volume 1 - Wendell Odom
 Het grootste probleem waar ik tegenaan liep was hoe diep ik in de stof ging duiken. Ik ben in het verleden aan een zelfstudie begonnen voor de CCNA, waardoor mijn kennis en begrip van netwerken naar alle waarschijnlijkheid boven deze opdracht uit steken. Deze kennis moet nog wel weer worden aangescherpt, maar ik heb besloten om dit stukje bij beetje te doen wanneer de cursus hier om vraagt.
 
 ### Resultaat
-Screenshots staan in de 00_includes folder als [NTW-02-1.png](/00_includes/NTW-02-01.png) en [NTW-02-2.png](/00_includes/NTW-02-2.png)
+Screenshots staan in de 00_includes folder als [NTW-02-1.png](/00_includes/NTW-02-1.png) en [NTW-02-2.png](/00_includes/NTW-02-2.png)
 
 ![](/00_includes/NTW-02-1.png)
 
