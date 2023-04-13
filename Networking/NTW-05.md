@@ -55,7 +55,8 @@ Het tweede punt waar ik tegenaan liep was het OS van mijn telefoon dat zeer priv
 - Zie boven.
 - Het privé IP adres van mijn laptop is 192.168.2.6, en die van mijn mobiel is 192.168.2.3. Deze heb ik statisch gehouden en mijn router geeft deze adressen uit.
 - Uiteraard zijn deze adressen niet hetzelfde, om een IP-conflict te voorkomen.
-- Om een of andere reden blijven beide apparaten online en verbonden met het netwerk. De router geeft ook gewoon aan dat er 2 devices zijn met hetzelfde IP adres. Mobile data was uitgezet, en ook de VPN stond uit. (afbeelding in 00_includes folder als [NTW-05.png](/00_includes/NTW-05.png)
-[](/00_includes/NTW-05.png)
+- Om een of andere reden blijven beide apparaten online en verbonden met het netwerk. De router geeft ook gewoon aan dat er 2 devices zijn met hetzelfde IP adres. Mobile data was uitgezet, en ook de VPN stond uit. (afbeelding in 00_includes folder als [NTW-05.png](/00_includes/NTW-05.png)).  
+
+![](/00_includes/NTW-05.png)
 
 - Wanneer het IP adres van mijn mobiel veranderd wordt naar een IP adres buiten mijn netwerk, dan is het zijn eigen netwerk en kan het geen verbinding maken de rest van het netwerk, inclusief het internet. De router ziet het apparaat niet eens.
