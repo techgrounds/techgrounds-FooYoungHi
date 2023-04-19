@@ -19,8 +19,8 @@ Geen.
 
 ### Resultaat
 Ik heb met het commando `nmap -sn 10.171.154.0/24` een overzicht gekregen van de VMs van de medecursisten op het netwerk en hun IP-adres.
-Screenshot staat in de 00_includes folder onder [NTW-01.png](/00_includes/NTW-01.png).
+Screenshot staat in de 00_includes folder onder [SEC-01.png](/00_includes/SEC-01.png).
 
-![](/00_includes/NTW-01.png)  
+![](/00_includes/SEC-01.png)  
 
 Met Wireshark heb ik een scan gedaan wanneer ik mijn browser opstart. Te verwachten was dat er, aangezien ik veel tabs open heb, er heel veel HTTPS berichten over het netwerk gingen. Bij mij gingen deze echter naar hetzelfde adres, omdat ik achter een VPN zit.
