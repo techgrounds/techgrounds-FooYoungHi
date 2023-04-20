@@ -1,5 +1,5 @@
 # Public key infrastructure
-[Geef een korte beschrijving van het onderwerp]
+Bekijken wat de functie is van een versleutelde website en hoe het werkt.
 
 ## Key-terms
 
