@@ -71,4 +71,5 @@ Screenshot staat in de 00_includes folder als [AWS-02.png](/00_includes/AWS-02.p
 
 Opties die AWS aanbiedt om inzicht te krijgen in de kosten:  
 AWS heeft een hele portal die meerder opties heeft om inzicht te krijgen in de kosten en eventueel geld te besparen. Om hier te komen hoef je in de search bar alleen maar "Cost explorer" in te typen en de link naar de portal verschijnt automatisch. Screenshot staat als [AWS-02-2.png](/00includes/AWS-02-2.png) in de 00_includes folder.  
+
 ![](/00_inlcudes/AWS-02-2.png)  
