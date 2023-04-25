@@ -36,7 +36,7 @@ Geen.
 Geen.
 
 ### Resultaat
-Ik heb de instance aangemaakt volgens de opgegeven parameters. De volgorde in de opdracht was iets anders dan ik op mijn scherm zag, maar alles was te vinden.  
+Ik heb de instance aangemaakt volgens de opgegeven parameters. De volgorde in de opdracht was iets anders dan ik op mijn scherm zag, maar alles was te vinden. Ook het ik de instance kunnen 'Terminaten', door eerst de beveiliging uit te zetten.  
 Screenshot staat in de 00_includes folder als [AWS-06-1.png](/00_includes/AWS-06-1.png).  
 ![](/00_includes/AWS-06-1.png)  
 Bij de tweede opdracht heb ik in kunnen loggen.  
