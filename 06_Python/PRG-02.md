@@ -43,10 +43,10 @@ Het .py bestand staat in de 00_includes folder als [PRG-02-1.py](/00_includes/PR
 **Opdracht 2:**  
 Screenshot staat in de 00_includes folder als [PRG-02-2.png](/00_includes/PRG-02-2.png)  
 
-![PRG-02-2.png](/00_includes/PRG-02-1.png)  
+![PRG-02-2.png](/00_includes/PRG-02-2.png)  
 De .py staat als [PRG-02-2.py](/00_includes/PRG-02-2.py) in de 00_includes folder.  
 
 **Opdracht 3:**  
-Screenshot en .py bestand staan in de 00_includes folder als [PRG-02-3.png](/00_inlcudes/PRG-02-3.png) en [PRG-02-3.py](/00_includes/PRG-02-3.py).  
-![PRG-02-3.png](/00_inlcudes/PRG-02-3.png)  
+Screenshot en .py bestand staan in de 00_includes folder als [PRG-02-3.png](/00_includes/PRG-02-3.png) en [PRG-02-3.py](/00_includes/PRG-02-3.py).  
+![PRG-02-3.png](/00_includes/PRG-02-3.png)  
 
