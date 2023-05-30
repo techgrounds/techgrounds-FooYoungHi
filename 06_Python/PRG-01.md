@@ -18,6 +18,4 @@ Geen.
 ### Resultaat
 Ik heb besloten om niet voor VSCode te gaan, maar voor de Open Source variant, VSCodium. Functioneel is dit voor zover ik weet het zelfde.
 Ik heb een python script aangemaakt dat "Hello World" print.
-Deze staat in de 00_includes folder in mijn Github als [PRG-01.py](/00_includes/PRG-01.py)  
-
-![PRG-01.py](/00_includes/PRG-01.py)  
+Deze staat in de 00_includes folder in mijn Github als [PRG-01.py](/00_includes/PRG-01.py)    
