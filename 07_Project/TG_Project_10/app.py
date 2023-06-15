@@ -3,11 +3,11 @@ import os
 
 import aws_cdk as cdk
 
-from v1.0.v1.0_stack import V10Stack
+from tg_project_10.tg_project_10_stack import TgProject10Stack
 
 
 app = cdk.App()
-V10Stack(app, "V10Stack",
+TgProject10Stack(app, "TgProject10Stack",
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.
@@ -20,7 +20,7 @@ V10Stack(app, "V10Stack",
     # Uncomment the next line if you know exactly what Account and Region you
     # want to deploy the stack to. */
 
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
+    env=cdk.Environment(account='835956440930', region='eu-central-1'),
 
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
     )
