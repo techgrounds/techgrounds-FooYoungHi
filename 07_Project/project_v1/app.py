@@ -2,27 +2,14 @@
 import os
 
 import aws_cdk as cdk
-
-from project_v1.project_v1_stack import ProjectV1Stack
-
+# begin met je projectnaam. Daarna een punt gevolgd door de naam van je .py bestand, zonder extentie. 
+# Na de 'import' zet je de naam van de class die je wilt importeren. 
+from project_v1.pdscripts_stack import PDScripts_Stack
+from project_v1.network_stack import Network_Stack
 
 app = cdk.App()
-ProjectV1Stack(app, "ProjectV1Stack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
-
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
-
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
+# Hier geef je aan welke stack naam je wilt dat de classes hebben. 
+PDScripts_Stack(app, "bucket",
     )
-
+Network_Stack(app, "network", )
 app.synth()
