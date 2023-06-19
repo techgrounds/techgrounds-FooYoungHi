@@ -7,12 +7,12 @@ class Network_Stack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        # The code that defines your stack goes here
+        # Setting up the first VPC
 
         self.vpc = ec2.Vpc(self, "WebServerVPC",
+                            # 1 AZ, 2 subnets. 1 Public en 1 Isolated
                            max_azs=1,
-                           cidr="10.10.10.0/24",
-                           # configuration will create 2 groups in 2 AZs = 4 subnets.
+                           ip_addresses=ec2.IpAddresses.cidr("10.10.10.0/24"),
                            subnet_configuration=[ec2.SubnetConfiguration(
                                subnet_type=ec2.SubnetType.PUBLIC,
                                name="Public",
