@@ -6,10 +6,14 @@ import aws_cdk as cdk
 # Na de 'import' zet je de naam van de class die je wilt importeren. 
 from project_v1.pdscripts_stack import PDScripts_Stack
 from project_v1.network_stack import Network_Stack
+from project_v1.spaghetti_stack import Spaghetti_Stack
+
 
 app = cdk.App()
-# Hier geef je aan welke stack naam je wilt dat de classes hebben. 
-PDScripts_Stack(app, "bucket",
-    )
+# Hier geef je aan welke stack naam je wilt dat de classes hebben. Deze volgorde is ook de deploy --all volgorde!
 Network_Stack(app, "network", )
+PDScripts_Stack(app, "bucket",)
+Spaghetti_Stack(app, "spaghetti")
+
+
 app.synth()

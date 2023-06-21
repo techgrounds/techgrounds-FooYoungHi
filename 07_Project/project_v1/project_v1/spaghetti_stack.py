@@ -2,7 +2,7 @@ from aws_cdk import CfnOutput, Stack
 import aws_cdk.aws_ec2 as ec2
 from constructs import Construct
             
-class Network_Stack(Stack):
+class Spaghetti_Stack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -22,13 +22,14 @@ class Network_Stack(Stack):
                            # nat_gateway_provider=ec2.NatProvider.gateway(),
                            nat_gateways=0,
                            )
-
-        #Create keys:
+            
+        #Add Keys:
         cfn_key_pair = ec2.CfnKeyPair(self, "MyCfnKeyPair",
         key_name="keyName",
 
         
         )
+
 
         # Create an EC2 instance
         instance = ec2.Instance(
