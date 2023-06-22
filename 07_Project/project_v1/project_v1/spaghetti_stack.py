@@ -22,22 +22,30 @@ class Spaghetti_Stack(Stack):
                            # nat_gateway_provider=ec2.NatProvider.gateway(),
                            nat_gateways=0,
                            )
-            
-        #Add Keys:
-        cfn_key_pair = ec2.CfnKeyPair(self, "MyCfnKeyPair",
-        key_name="keyName",
-
-        
-        )
 
 
         # Create an EC2 instance
-        instance = ec2.Instance(
+        webserver_instance = ec2.Instance(
             self,
             "WebServer",
             instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.latest_amazon_linux2(),
+            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
             vpc=self.vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC)  # Use public subnet
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
+            user_data=ec2.UserData.custom("""#!/bin/bash
+                                    # Install Apache Web Server and PHP
+                                    yum install -y httpd php
+                                    # Turn on web server
+                                    chkconfig httpd on
+                                    service httpd start""")
         )
+        # Security Group for Webserver: Allow http from all sources, and SSH from all sources.
+        webserver_instance.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(22), "Allow ssh from internet")
+        webserver_instance.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(80), "Allow http from internet")
+        webserver_instance.connections.allow_from_any_ipv4(
+            ec2.Port.tcp(443), "Allow https from internet")
+
         CfnOutput(self, "Output", value=self.vpc.vpc_id)
