@@ -1,4 +1,5 @@
 from aws_cdk import CfnOutput, Stack
+from aws_cdk import aws_autoscaling as autoscaling
 import aws_cdk.aws_ec2 as ec2
 from constructs import Construct
 from aws_cdk import aws_elasticloadbalancingv2 as elbv2
@@ -29,24 +30,37 @@ class Spaghetti_Stack(Stack):
                            )
 
 
-        # Create the Web Server instance
-        webserver_instance = ec2.Instance(
+        # Create autoscaling group for Web Server:
+        webserver_instance = autoscaling.AutoScalingGroup(
             self,
-            "WebServer",
-            instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
+            "Webserver",
+            vpc=self.webvpc,
+            instance_type=ec2.InstanceType.of(
+                ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO
+            ),
             machine_image=ec2.MachineImage.latest_amazon_linux2(),
             key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
-            vpc=self.webvpc,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
             user_data=ec2.UserData.custom("""#!/bin/bash
                                     # Install Apache Web Server and PHP
                                     yum install -y httpd php
                                     # Turn on web server
                                     chkconfig httpd on
-                                    service httpd start""")
+                                    service httpd start"""),
+
+            min_capacity=1,
+            max_capacity=4,
         )
         
-        
+
+        # Create Target Group for Web Server:
+        #webserver_tg = elbv2.ApplicationTargetGroup(self, "WebServerTargetGroup",
+        #                                            vpc=self.webvpc,
+        #                                            port=80,
+        #                                            protocol=elbv2.ApplicationProtocol.HTTP,
+        #                                            target_type=elbv2.TargetType.IP,
+        #                                            )
+
         # Build Load Balancer for Webserver:
         webserver_lb = elbv2.ApplicationLoadBalancer(self, "WebServerLB",
                                                     vpc=self.webvpc,
@@ -54,15 +68,25 @@ class Spaghetti_Stack(Stack):
                                                     load_balancer_name="WebServerLB",
                                                     )
                 
-        # Make Elastic IP for Load Balancer:
+        # Make a new Elastic IP for Load Balancer:
+        
         webserver_lb_ip = ec2.CfnEIP(self, "WebServerLBIP",
                                     domain="vpc",
+
                                     )            
         
         
         # Show the Elastic IP of Load Balancer:
         CfnOutput(self, "WebServerLBIP:", value=webserver_lb_ip.ref)
 
+        # Link ELB to Web Server:
+        listener = webserver_lb.add_listener("Listener", port=80)
+        listener.add_targets("Target", port=80, targets=[webserver_instance])
+        #listener.add_targets("Target443", port=443, targets=[webserver_instance])
+        listener.connections.allow_default_port_from_any_ipv4("Open to the world")
+
+        webserver_instance.scale_on_request_count("AModestLoad", target_requests_per_minute=60)
+        
 
 
         #Setting up the MGMT VPC:
