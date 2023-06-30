@@ -1,16 +1,18 @@
-from aws_cdk import CfnOutput, Stack
-from aws_cdk import aws_autoscaling as autoscaling
+from aws_cdk import (CfnOutput, Stack,
+aws_autoscaling as autoscaling,
+aws_elasticloadbalancingv2 as elbv2)
 import aws_cdk.aws_ec2 as ec2
 from constructs import Construct
-from aws_cdk import aws_elasticloadbalancingv2 as elbv2
-
+from project_v1.config import user_data
             
-class Spaghetti_Stack(Stack):
+class WebVPC(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
-
-        # Setting up the Webserver VPC
+        super().__init__(scope, id,  **kwargs)
+        
+        ################################
+        # Setting up the Webserver VPC #
+        ################################
 
         self.webvpc = ec2.Vpc(self, "WebServerVPC",
                             # 1 AZ, 2 subnets. 1 Public en 1 Isolated
@@ -28,62 +30,47 @@ class Spaghetti_Stack(Stack):
                            # nat_gateway_provider=ec2.NatProvider.gateway(),
                            nat_gateways=0,
                            )
+        
 
-
-        # Create autoscaling group for Web Server:
+        
+class WebServer(Construct):
+    def __init__(self, scope: Construct, id: str, WebVPC, **kwargs) -> None:
+        super().__init__(scope, id,  **kwargs)
+        ############################################
+        # Create autoscaling group for Web Server: #
+        ############################################
         webserver_instance = autoscaling.AutoScalingGroup(
             self,
             "Webserver",
-            vpc=self.webvpc,
+            vpc=webvpc,
             instance_type=ec2.InstanceType.of(
                 ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO
             ),
             machine_image=ec2.MachineImage.latest_amazon_linux2(),
             key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
-            user_data=ec2.UserData.custom("""#!/bin/bash
-                                    # Install Apache Web Server and PHP
-                                    yum install -y httpd php
-                                    # Turn on web server
-                                    chkconfig httpd on
-                                    service httpd start"""),
+            user_data=ec2.UserData.custom(user_data),
 
             min_capacity=1,
             max_capacity=4,
         )
         
 
-        # Create Target Group for Web Server:
-        #webserver_tg = elbv2.ApplicationTargetGroup(self, "WebServerTargetGroup",
-        #                                            vpc=self.webvpc,
-        #                                            port=80,
-        #                                            protocol=elbv2.ApplicationProtocol.HTTP,
-        #                                            target_type=elbv2.TargetType.IP,
-        #                                            )
-
         # Build Load Balancer for Webserver:
         webserver_lb = elbv2.ApplicationLoadBalancer(self, "WebServerLB",
-                                                    vpc=self.webvpc,
+                                                    vpc=webvpc,
                                                     internet_facing=True,
                                                     load_balancer_name="WebServerLB",
                                                     )
-                
-        # Make a new Elastic IP for Load Balancer:
+        # Output the Public IP (DNS Name) of the load balancer:
+        CfnOutput(self, "WebServer_Public_IP", value=webserver_lb.load_balancer_dns_name)
         
-        webserver_lb_ip = ec2.CfnEIP(self, "WebServerLBIP",
-                                    domain="vpc",
-
-                                    )            
-        
-        
-        # Show the Elastic IP of Load Balancer:
-        CfnOutput(self, "WebServerLBIP:", value=webserver_lb_ip.ref)
-
         # Link ELB to Web Server:
         listener = webserver_lb.add_listener("Listener", port=80)
         listener.add_targets("Target", port=80, targets=[webserver_instance])
-        #listener.add_targets("Target443", port=443, targets=[webserver_instance])
-        listener.connections.allow_default_port_from_any_ipv4("Open to the world")
+        #Allow port 80 and 443 for everyone:
+        listener.connections.allow_from_any_ipv4(ec2.Port.tcp(443), "Allow HTTPS")
+        listener.connections.allow_from_any_ipv4(ec2.Port.tcp(80), "Allow HTTP")
 
         webserver_instance.scale_on_request_count("AModestLoad", target_requests_per_minute=60)
         
