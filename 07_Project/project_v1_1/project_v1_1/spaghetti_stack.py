@@ -4,53 +4,21 @@ import aws_cdk.aws_ec2 as ec2
 from constructs import Construct
 from aws_cdk import aws_elasticloadbalancingv2 as elbv2
 from project_v1_1.config import user_data
+from project_v1_1.VPC_construct import WebVPC_Construct, MGMTVPC_Construct
+from project_v1_1.peering_construct import Peering_construct
             
 class Spaghetti_Stack(Stack):
 
-    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
-        super().__init__(scope, id, **kwargs)
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
 
     #################################
     # Setting up the VPCs & Peering #
     #################################
 
-    # WebVPC:
-        webvpc = ec2.Vpc(self, "WebServerVPC",
-                            # 1 AZ, 2 subnets. 1 Public en 1 Isolated
-                           max_azs=2,
-                           ip_addresses=ec2.IpAddresses.cidr("10.10.10.0/24"),
-                           subnet_configuration=[ec2.SubnetConfiguration(
-                               subnet_type=ec2.SubnetType.PUBLIC,
-                               name="Public"
-                            ),
-                            ec2.SubnetConfiguration(
-                                subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
-                                name="Database"        
-                            ),
-                           ],
-                           )
-        self.webvpc = webvpc
-
-        self.mgmtvpc = ec2.Vpc(self, "MGMTVPC",
-                            # 1 AZ, 1 subnet
-                           max_azs=1,
-                           ip_addresses=ec2.IpAddresses.cidr("10.20.20.0/24"),
-                           subnet_configuration=[ec2.SubnetConfiguration(
-                               subnet_type=ec2.SubnetType.PUBLIC,
-                               name="Public"
-                            ),
-                           ],
-                           # nat_gateway_provider=ec2.NatProvider.gateway(),
-                           nat_gateways=0,
-        )
-
-    # VPC Peering:
-        Peering_connection = ec2.CfnVPCPeeringConnection(self, "Cloud10VPCPeer",
-            peer_vpc_id=self.mgmtvpc.vpc_id,
-            vpc_id=self.webvpc.vpc_id,
-
-    
-        )
+        self.webvpc = WebVPC_Construct(self, 'webvpc').webvpc # WebServer VPC
+        self.mgmtvpc = MGMTVPC_Construct(self, 'mgmtvpc').mgmtvpc # MGMT Server VPC
+        self.peering_connection = Peering_construct(self, 'peering_connection').peering_connection # Peering Connection
 
     ####################
     # Security Groups: #
@@ -67,7 +35,7 @@ class Spaghetti_Stack(Stack):
 
     #Webserver:
         WS_SG = ec2.SecurityGroup(self, "WebServerSG",
-                                 vpc=webvpc,
+                                 vpc=self.webvpc,
                                  allow_all_outbound=False
         )
         
@@ -87,7 +55,7 @@ class Spaghetti_Stack(Stack):
 
     # Load Balancer:
         ws_lb_sg = ec2.SecurityGroup(self, "WebServerLoadBalancerSG",
-                                 vpc=webvpc,
+                                 vpc=self.webvpc,
                                  allow_all_outbound=False
                                  )
         
@@ -140,7 +108,7 @@ class Spaghetti_Stack(Stack):
         webserver_instance = autoscaling.AutoScalingGroup(
             self,
             "Webserver",
-            vpc=webvpc,
+            vpc=self.webvpc,
             instance_type=ec2.InstanceType.of(
                 ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO
             ),
@@ -169,7 +137,7 @@ class Spaghetti_Stack(Stack):
 
     # Build Load Balancer for Webserver:
         webserver_lb = elbv2.ApplicationLoadBalancer(self, "WebServerLB",
-                                                    vpc=webvpc,
+                                                    vpc=self.webvpc,
                                                     internet_facing=True,
                                                     load_balancer_name="WebServerLB",
                                                     security_group=ws_lb_sg,                                                    )
