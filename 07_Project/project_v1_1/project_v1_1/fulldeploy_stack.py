@@ -3,9 +3,9 @@ from aws_cdk import aws_autoscaling as autoscaling
 import aws_cdk.aws_ec2 as ec2
 from constructs import Construct
 from aws_cdk import aws_elasticloadbalancingv2 as elbv2
-from project_v1.config import user_data
+from project_v1_1.config import user_data
             
-class Network_Stack(Stack):
+class Deploy_Stack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
