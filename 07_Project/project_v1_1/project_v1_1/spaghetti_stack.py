@@ -1,9 +1,10 @@
-from aws_cdk import CfnOutput, Stack
-from aws_cdk import aws_autoscaling as autoscaling
+from aws_cdk import (CfnOutput, Stack, Duration,
+aws_autoscaling as autoscaling)
 import aws_cdk.aws_ec2 as ec2
+import aws_cdk.aws_cloudwatch as cloudwatch
 from constructs import Construct
 from aws_cdk import aws_elasticloadbalancingv2 as elbv2
-from project_v1_1.config import user_data
+from project_v1_1.config import min_capacity, max_capacity, web_vpc_cidr, mgmt_vpc_cidr, web_az, mgmt_az, volume_size_mgmt, volume_size_web
 
 
 class Spaghetti_Stack(Stack):
@@ -17,57 +18,56 @@ class Spaghetti_Stack(Stack):
 
     # WebVPC:
         webvpc = ec2.Vpc(self, "WebServerVPC",
-                            # 1 AZ, 2 subnets. 1 Public en 1 Isolated
-                           max_azs=2,
-                           ip_addresses=ec2.IpAddresses.cidr("10.10.10.0/24"),
+                            # 2 AZ, 2 subnets. 2 Public en 2 Isolated
+                           max_azs=web_az,
+                           ip_addresses=ec2.IpAddresses.cidr(web_vpc_cidr),
                            subnet_configuration=[ec2.SubnetConfiguration(
                                subnet_type=ec2.SubnetType.PUBLIC,
                                name="Public"
+                               
                             ),
                             ec2.SubnetConfiguration(
                                 subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
-                                name="Database"        
-                            ),
+                                name="Database",
+                                ),
                            ],
                            )
         self.webvpc = webvpc
         
     # MGMT VPC:
-        # self.mgmtvpc = ec2.Vpc(self, "MGMTVPC",
-        #                     # 1 AZ, 1 subnet
-        #                    max_azs=1,
-        #                    ip_addresses=ec2.IpAddresses.cidr("10.20.20.0/24"),
-        #                    subnet_configuration=[ec2.SubnetConfiguration(
-        #                        subnet_type=ec2.SubnetType.PUBLIC,
-        #                        name="Public"
-        #                     ),
-        #                    ],
-        #                    # nat_gateway_provider=ec2.NatProvider.gateway(),
-        #                    nat_gateways=0,
-        # )
+        self.mgmtvpc = ec2.Vpc(self, "MGMTVPC",
+                            # 1 AZ, 1 subnet
+                           max_azs=mgmt_az,
+                           ip_addresses=ec2.IpAddresses.cidr(mgmt_vpc_cidr),
+                           subnet_configuration=[ec2.SubnetConfiguration(
+                               subnet_type=ec2.SubnetType.PUBLIC,
+                               name="Public"
+                            ),
+                           ],
+                           # nat_gateway_provider=ec2.NatProvider.gateway(),
+                           nat_gateways=0,
+        )
 
     # VPC Peering:
-        # Peering_connection = ec2.CfnVPCPeeringConnection(self, "Cloud10VPCPeer",
-        #     peer_vpc_id=self.mgmtvpc.vpc_id,
-        #     vpc_id=self.webvpc.vpc_id,
+        Peering_connection = ec2.CfnVPCPeeringConnection(self, "Cloud10VPCPeer",
+            peer_vpc_id=self.mgmtvpc.vpc_id,
+            vpc_id=self.webvpc.vpc_id,
 
     
-        # )
+        )
 
     ####################
     # Security Groups: #
     ####################
 
     # Management Server:
-#         mgmt_sg=ec2.SecurityGroup(self, "MGMTSG",
-#                                     vpc=self.mgmtvpc,
-#                                     allow_all_outbound=False,)
+        mgmt_sg=ec2.SecurityGroup(self, "MGMTSG",
+                                    vpc=self.mgmtvpc,
+                                    allow_all_outbound=False,)
        
-#         mgmt_sg.add_ingress_rule(
-#             ec2.Peer.any_ipv4(), ec2.Port.tcp(3389)) # RDP Access from ALL. Add trusted IP later
-# # Allow RDP on Management Server:
-#         mgmt_sg.connections.allow_from_any_ipv4(
-#             ec2.Port.tcp(3389), "Allow RDP on Management Server from ALL") # Add trusted IP later
+        mgmt_sg.add_ingress_rule(
+            ec2.Peer.any_ipv4(), ec2.Port.tcp(3389)) # RDP Access from ALL. Add trusted IP later
+
 
 
     #Webserver:
@@ -77,8 +77,16 @@ class Spaghetti_Stack(Stack):
         )
         
            
- #       WS_SG.connections.allow_from(
- #           mgmt_sg, ec2.Port.tcp(22), " Allow SSH from Management Server") 
+        WS_SG.connections.allow_from(
+           mgmt_sg, ec2.Port.tcp(22), " Allow SSH from Management Server") 
+        
+        WS_SG.connections.allow_to_any_ipv4(
+            ec2.Port.tcp(80), "Allow HTTP from Web Server to ALL"
+        )
+
+        WS_SG.connections.allow_to_any_ipv4(
+            ec2.Port.tcp(443), "Allow HTTPS from Web Server to ALL"
+        )
        
     # Load Balancer:
         ws_lb_sg = ec2.SecurityGroup(self, "WebServerLoadBalancerSG",
@@ -93,62 +101,77 @@ class Spaghetti_Stack(Stack):
     
 
     # Create the Management Server instance
-    #     mgmtserver_instance = ec2.Instance(
-    #         self,
-    #         "MGMTServer",
-    #         instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
-    #         machine_image=ec2.MachineImage.latest_windows(ec2.WindowsVersion.WINDOWS_SERVER_2019_ENGLISH_FULL_BASE),
-    #         security_group=mgmt_sg,
-    #         block_devices=[
-    #             ec2.BlockDevice(
-    #                 device_name="/dev/xvda",
-    #                 volume=ec2.BlockDeviceVolume.ebs(
-    #                     volume_size=8,
-    #                     encrypted=True,
-    #                     delete_on_termination=True,
-    #                 )
-    #             )],
+        mgmtserver_instance = ec2.Instance(
+            self,
+            "MGMTServer",
+            instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
+            machine_image=ec2.MachineImage.latest_windows(ec2.WindowsVersion.WINDOWS_SERVER_2019_ENGLISH_FULL_BASE),
+            security_group=mgmt_sg,
+            block_devices=[
+                ec2.BlockDevice(
+                    device_name="/dev/xvda",
+                    volume=ec2.BlockDeviceVolume.ebs(
+                        volume_size=volume_size_mgmt,
+                        encrypted=True,
+                        delete_on_termination=True,
+                    )
+                )],
 
-    #         key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
-    #         vpc=self.mgmtvpc,
-    #         vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
+            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
+            vpc=self.mgmtvpc,
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
             
-    #     )
-    # # Output local IP of Management Server:
-    #     CfnOutput(self, "MGMTServer IP:", value=mgmtserver_instance.instance_public_ip)
+        )
+    # Output public IP of Management Server:
+        CfnOutput(self, "MGMTServer IP:", value=mgmtserver_instance.instance_public_ip)
 
-    # Create autoscaling group for Web Server:
+    # Pre-load userdata:
+        with open("./project_v1_1/user_data.sh") as f:
+            self.user_data = f.read()
+    
+    # Create Launch Template for Web Server:
+        WS_LT = ec2.LaunchTemplate(self, "WebServerLaunchTemplate",
+                                    launch_template_name="WebServerLaunchTemplate",
+                                    instance_type=ec2.InstanceType('t3.nano'),
+                                    machine_image=ec2.MachineImage.latest_amazon_linux2(),
+                                    security_group=WS_SG,
+                                    key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!')
+                                    user_data= ec2.UserData.custom(self.user_data),
+                                    block_devices=[
+                                        ec2.BlockDevice(
+                                            device_name='/dev/xvda',
+                                            volume=ec2.BlockDeviceVolume.ebs(
+                                                volume_size=volume_size_web,
+                                                encrypted=True,
+                                            ))
+                                    ]
+                                    )
+    
+    # Webserver Autoscaling
         webserver_instance = autoscaling.AutoScalingGroup(
             self,
             "Webserver",
             vpc=webvpc,
-            instance_type=ec2.InstanceType.of(
-                ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO
-            ),
-            machine_image=ec2.MachineImage.latest_amazon_linux2(),
-            security_group=WS_SG,
-            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
-            block_devices=[
-                autoscaling.BlockDevice(
-                    device_name='/dev/xvda',
-                    volume=autoscaling.BlockDeviceVolume.ebs(
-                        volume_size=8,
-                        encrypted=True,
-                    )
-                )],
+            launch_template=WS_LT,
+            min_capacity=min_capacity,
+            max_capacity=max_capacity,
+            
+            health_check=autoscaling.HealthCheck.elb(grace=Duration.seconds(60)),
+            
 
-            user_data=ec2.UserData.custom(user_data),
-
-            min_capacity=1,
-            max_capacity=3,
+         )
+        webserver_instance.scale_on_cpu_utilization(
+            'CPU-watch',
+            target_utilization_percent=80,
         )
         
+   
+   
     ################################
     # Load Balancer for Webserver: #
     ################################
 
-    # Build Load Balancer for Webserver:
         webserver_lb = elbv2.ApplicationLoadBalancer(self, "WebServerLB",
                                                     vpc=webvpc,
                                                     internet_facing=True,
@@ -163,9 +186,18 @@ class Spaghetti_Stack(Stack):
                                                     vpc=webvpc,
                                                     port=80,
                                                     protocol=elbv2.ApplicationProtocol.HTTP,
-                                                    target_type=elbv2.TargetType.INSTANCE
-                                                    )
-        webserver_tg.add_target(webserver_instance)
+                                                    target_type=elbv2.TargetType.INSTANCE,
+                                                    targets=[webserver_instance],
+                                                    health_check=elbv2.HealthCheck( 
+                                                                                    port="80",
+                                                                                    protocol=elbv2.Protocol.HTTP,
+                                                                                    path="/healthcheck.php",
+                                                                                    timeout=Duration.seconds(5),
+                                                                                    healthy_threshold_count=2,
+                                                                                    unhealthy_threshold_count=6,
+                                                                                    interval=Duration.seconds(10)
+                                                    ))
+       
     # Link ELB to Web Server:
         
 
