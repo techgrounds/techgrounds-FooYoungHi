@@ -10,4 +10,6 @@ mgmt_vpc_cidr = "10.20.20.0/24" # CIDR block for the Management VPC
 web_az = 2 # Amount of AZs in WebVPC
 mgmt_az = 1 # Amount of AZs in MGMTVPC
 volume_size_web = 8 # Size of the EBS volume for the WebServer
-volume_size_mgmt = 8 # Size of the EBS volume for the MGMTServer
+volume_size_mgmt = 30 # Size of the EBS volume for the MGMTServer
+AMI_image = "ami-05414bda261c0e7aa" # AMI ID for the WebServer
+domain_ws = "cloud10.dannystammers.nl" #Domain for your webserver certificate

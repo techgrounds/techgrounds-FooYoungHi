@@ -1,10 +1,10 @@
 from aws_cdk import (CfnOutput, Stack, Duration,
-aws_autoscaling as autoscaling)
+aws_autoscaling as autoscaling, aws_elasticloadbalancingv2 as elbv2)
 import aws_cdk.aws_ec2 as ec2
 import aws_cdk.aws_cloudwatch as cloudwatch
 from constructs import Construct
-from aws_cdk import aws_elasticloadbalancingv2 as elbv2
-from project_v1_1.config import min_capacity, max_capacity, web_vpc_cidr, mgmt_vpc_cidr, web_az, mgmt_az, volume_size_mgmt, volume_size_web
+import aws_cdk.aws_certificatemanager as acm
+from project_v1_1.config import *
 
 
 class Spaghetti_Stack(Stack):
@@ -109,7 +109,7 @@ class Spaghetti_Stack(Stack):
             security_group=mgmt_sg,
             block_devices=[
                 ec2.BlockDevice(
-                    device_name="/dev/xvda",
+                    device_name="/dev/sda1",
                     volume=ec2.BlockDeviceVolume.ebs(
                         volume_size=volume_size_mgmt,
                         encrypted=True,
@@ -125,27 +125,6 @@ class Spaghetti_Stack(Stack):
     # Output public IP of Management Server:
         CfnOutput(self, "MGMTServer IP:", value=mgmtserver_instance.instance_public_ip)
 
-    # Pre-load userdata:
-        with open("./project_v1_1/user_data.sh") as f:
-            self.user_data = f.read()
-    
-    # Create Launch Template for Web Server:
-        WS_LT = ec2.LaunchTemplate(self, "WebServerLaunchTemplate",
-                                    launch_template_name="WebServerLaunchTemplate",
-                                    instance_type=ec2.InstanceType('t3.nano'),
-                                    machine_image=ec2.MachineImage.latest_amazon_linux2(),
-                                    security_group=WS_SG,
-                                    key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!')
-                                    user_data= ec2.UserData.custom(self.user_data),
-                                    block_devices=[
-                                        ec2.BlockDevice(
-                                            device_name='/dev/xvda',
-                                            volume=ec2.BlockDeviceVolume.ebs(
-                                                volume_size=volume_size_web,
-                                                encrypted=True,
-                                            ))
-                                    ]
-                                    )
     
     # Webserver Autoscaling
         webserver_instance = autoscaling.AutoScalingGroup(
@@ -153,10 +132,12 @@ class Spaghetti_Stack(Stack):
             "Webserver",
             vpc=webvpc,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
-            launch_template=WS_LT,
+            security_group=WS_SG,
+            instance_type = ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
+            machine_image=ec2.MachineImage.generic_linux({"eu-central-1": AMI_image}),
+            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!')
             min_capacity=min_capacity,
             max_capacity=max_capacity,
-            
             health_check=autoscaling.HealthCheck.elb(grace=Duration.seconds(60)),
             
 
@@ -197,15 +178,26 @@ class Spaghetti_Stack(Stack):
                                                                                     unhealthy_threshold_count=6,
                                                                                     interval=Duration.seconds(10)
                                                     ))
-       
+    # Create a certificate
+        certificate = acm.Certificate(self, "MyCertificate",
+                    domain_name=domain_ws,
+                    validation= acm.CertificateValidation.from_dns(hosted_zone=None)
+        )
+
+
+
     # Link ELB to Web Server:
         
 
-        listener = webserver_lb.add_listener("Listener", default_target_groups=[webserver_tg], protocol=elbv2.ApplicationProtocol.HTTP)
+        listener = webserver_lb.add_listener("Listener", default_target_groups=[webserver_tg], 
+                                                        protocol=elbv2.ApplicationProtocol.HTTPS,
+                                                        port=443, 
+                                                        certificates=[elbv2.ListenerCertificate(certificate_arn=certificate.certificate_arn)]
+                                                        )
 
-  
+
         listener.connections.allow_from_any_ipv4(
-            ec2.Port.tcp(443), "Allow HTTPS from All")
+            ec2.Port.tcp(80), "Allow HTTP from All")
         
         listener.connections.allow_to_any_ipv4(
             ec2.Port.tcp(80), "Allow HTTP to All")
@@ -214,10 +206,10 @@ class Spaghetti_Stack(Stack):
             ec2.Port.tcp(443), "Allow HTTPS to All")
         
  
-    # # Redirect HTTP to HTTPS: -> To make it work, change protocol of listener to HTTPS, and add certificate.
-    #     webserver_lb.add_redirect(
-    #                     source_protocol=elbv2.ApplicationProtocol.HTTP,
-    #                     source_port=80,
-    #                     target_protocol=elbv2.ApplicationProtocol.HTTPS,
-    #                     target_port=443,
-    #                     )   
+    # Redirect HTTP to HTTPS: -> To make it work, change protocol of listener to HTTPS, and add certificate.
+        webserver_lb.add_redirect(
+                        source_protocol=elbv2.ApplicationProtocol.HTTP,
+                        source_port=80,
+                        target_protocol=elbv2.ApplicationProtocol.HTTPS,
+                        target_port=443,
+                        )   

@@ -7,6 +7,9 @@ import aws_cdk as cdk
 from project_v1_1.pdscripts_stack import PDScripts_Stack
 #from project_v1_1.fulldeploy_stack import Deploy_Stack
 from project_v1_1.spaghetti_stack import Spaghetti_Stack
+from project_v1_1.InstanceTemplate import EC2_Template
+
+
 
 
 
@@ -25,4 +28,5 @@ app = cdk.App()
 #Deploy_Stack(app, "fulldeploy", env=deployment_region)
 PDScripts_Stack(app, "bucket",)
 Spaghetti_Stack(app, "spaghetti", env=deployment_region)
+EC2_Template(app, "ec2template", env=deployment_region)
 app.synth()
