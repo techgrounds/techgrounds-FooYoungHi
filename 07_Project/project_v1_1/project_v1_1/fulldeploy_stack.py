@@ -1,9 +1,10 @@
-from aws_cdk import CfnOutput, Stack
-from aws_cdk import aws_autoscaling as autoscaling
+from aws_cdk import (CfnOutput, Stack, Duration,
+aws_autoscaling as autoscaling, aws_elasticloadbalancingv2 as elbv2)
 import aws_cdk.aws_ec2 as ec2
+import aws_cdk.aws_cloudwatch as cloudwatch
 from constructs import Construct
-from aws_cdk import aws_elasticloadbalancingv2 as elbv2
-from project_v1_1.config import user_data
+import aws_cdk.aws_certificatemanager as acm
+from project_v1_1.config import *
             
 class Deploy_Stack(Stack):
 

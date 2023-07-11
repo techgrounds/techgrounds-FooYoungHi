@@ -1,6 +1,13 @@
 import aws_cdk as cdk
 import aws_cdk.aws_ec2 as ec2
 
+# Region & Account:
+deployment_region = cdk.Environment(
+    account="835956440930", # Your AWS Account ID
+    region="eu-central-1" # 
+)
+
+
 # Define the user data script for the WebServer:
 
 min_capacity = 1 # Minimum number of EC2 instances to maintain
@@ -13,3 +20,5 @@ volume_size_web = 8 # Size of the EBS volume for the WebServer
 volume_size_mgmt = 30 # Size of the EBS volume for the MGMTServer
 AMI_image = "ami-05414bda261c0e7aa" # AMI ID for the WebServer
 domain_ws = "cloud10.dannystammers.nl" #Domain for your webserver certificate
+
+
