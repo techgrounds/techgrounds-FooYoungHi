@@ -1,5 +1,5 @@
 from aws_cdk import (CfnOutput, Stack, Duration,
-aws_autoscaling as autoscaling, aws_elasticloadbalancingv2 as elbv2)
+aws_autoscaling as autoscaling, aws_elasticloadbalancingv2 as elbv2, aws_ssm as ssm)
 import aws_cdk.aws_ec2 as ec2
 import aws_cdk.aws_cloudwatch as cloudwatch
 from constructs import Construct
@@ -23,7 +23,7 @@ class Spaghetti_Stack(Stack):
                            ip_addresses=ec2.IpAddresses.cidr(web_vpc_cidr),
                            subnet_configuration=[ec2.SubnetConfiguration(
                                subnet_type=ec2.SubnetType.PUBLIC,
-                               name="Public"
+                               name="WebServer"
                                
                             ),
                             ec2.SubnetConfiguration(
@@ -33,7 +33,8 @@ class Spaghetti_Stack(Stack):
                            ],
                            )
         self.webvpc = webvpc
-        
+
+
     # MGMT VPC:
         self.mgmtvpc = ec2.Vpc(self, "MGMTVPC",
                             # 1 AZ, 1 subnet
@@ -41,13 +42,13 @@ class Spaghetti_Stack(Stack):
                            ip_addresses=ec2.IpAddresses.cidr(mgmt_vpc_cidr),
                            subnet_configuration=[ec2.SubnetConfiguration(
                                subnet_type=ec2.SubnetType.PUBLIC,
-                               name="Public"
+                               name="MGMT",
                             ),
                            ],
                            # nat_gateway_provider=ec2.NatProvider.gateway(),
                            nat_gateways=0,
         )
-
+        mgmtvpc = self.mgmtvpc
     # VPC Peering:
         Peering_connection = ec2.CfnVPCPeeringConnection(self, "Cloud10VPCPeer",
             peer_vpc_id=self.mgmtvpc.vpc_id,
@@ -64,11 +65,13 @@ class Spaghetti_Stack(Stack):
         mgmt_sg=ec2.SecurityGroup(self, "MGMTSG",
                                     vpc=self.mgmtvpc,
                                     allow_all_outbound=False,)
-       
+    # RDP Access from Trusted IP.   
         mgmt_sg.add_ingress_rule(
-            ec2.Peer.any_ipv4(), ec2.Port.tcp(3389)) # RDP Access from ALL. Add trusted IP later
+                                ec2.Peer.ipv4(ext_ip),
+                                ec2.Port.tcp(3389),
+                                )                       
 
-
+             
 
     #Webserver:
         WS_SG = ec2.SecurityGroup(self, "WebServerSG",
@@ -131,7 +134,7 @@ class Spaghetti_Stack(Stack):
             self,
             "Webserver",
             vpc=webvpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),  # Use private isolated subnet
             security_group=WS_SG,
             instance_type = ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.generic_linux({"eu-central-1": AMI_image}),
@@ -147,7 +150,7 @@ class Spaghetti_Stack(Stack):
             target_utilization_percent=80,
         )
         
-   
+        #CfnOutput(self, "WebServer_Private_IP", value=webserver_instance.WebServer_Private_IP)
    
     ################################
     # Load Balancer for Webserver: #
@@ -213,3 +216,24 @@ class Spaghetti_Stack(Stack):
                         target_protocol=elbv2.ApplicationProtocol.HTTPS,
                         target_port=443,
                         )   
+
+    ################
+    # Route Tables #
+    ################
+    # Configure MGMT Route
+
+    # MGMT Server to VPC-Peering:
+        mgmt_rt = ec2.CfnRoute(self, "MGMTRoute",
+                                route_table_id=mgmtvpc.public_subnets[0].route_table.route_table_id,
+                                destination_cidr_block=web_vpc_cidr,
+                                vpc_peering_connection_id=Peering_connection.ref,
+                                )
+
+        
+        webserver_rt = ec2.CfnRoute(self, "WebServerRoute",
+                                route_table_id=webvpc.isolated_subnets[1].route_table.route_table_id,
+                                destination_cidr_block=mgmt_vpc_cidr,
+                                vpc_peering_connection_id=Peering_connection.ref,
+                                )
+        
+        CfnOutput(self, "External_IP_ADDED_TO_TRUSTED_LIST:", value=ext_ip)
