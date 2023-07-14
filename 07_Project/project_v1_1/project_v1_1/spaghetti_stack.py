@@ -1,5 +1,5 @@
 from aws_cdk import (CfnOutput, Stack, Duration,
-aws_autoscaling as autoscaling, aws_elasticloadbalancingv2 as elbv2, aws_ssm as ssm)
+aws_autoscaling as autoscaling, aws_elasticloadbalancingv2 as elbv2, aws_backup as backup, aws_events as events, aws_rds as rds)
 import aws_cdk.aws_ec2 as ec2
 import aws_cdk.aws_cloudwatch as cloudwatch
 from constructs import Construct
@@ -45,10 +45,10 @@ class Spaghetti_Stack(Stack):
                                name="MGMT",
                             ),
                            ],
-                           # nat_gateway_provider=ec2.NatProvider.gateway(),
                            nat_gateways=0,
         )
         mgmtvpc = self.mgmtvpc
+    
     # VPC Peering:
         Peering_connection = ec2.CfnVPCPeeringConnection(self, "Cloud10VPCPeer",
             peer_vpc_id=self.mgmtvpc.vpc_id,
@@ -61,24 +61,78 @@ class Spaghetti_Stack(Stack):
     # Security Groups: #
     ####################
 
-    # Management Server:
+    # Create the Security Groups:
+
+        # Management Server:
         mgmt_sg=ec2.SecurityGroup(self, "MGMTSG",
                                     vpc=self.mgmtvpc,
                                     allow_all_outbound=False,)
-    # RDP Access from Trusted IP.   
-        mgmt_sg.add_ingress_rule(
-                                ec2.Peer.ipv4(ext_ip),
-                                ec2.Port.tcp(3389),
-                                )                       
 
-             
-
-    #Webserver:
+        # Webserver:
         WS_SG = ec2.SecurityGroup(self, "WebServerSG",
                                  vpc=webvpc,
                                  allow_all_outbound=False
         )
-        
+
+        # Database:
+        db_sg = ec2.SecurityGroup(self, "DatabaseSG",
+                                 vpc=webvpc,
+                                 allow_all_outbound=False
+                                 )
+
+        # Load Balancer:
+        ws_lb_sg = ec2.SecurityGroup(self, "WebServerLoadBalancerSG",
+                                 vpc=webvpc,
+                                 allow_all_outbound=False
+                                 )
+
+    # Add Rules:
+        ## Management Server: ##
+
+        # RDP Access from Trusted Office IP.   
+        mgmt_sg.add_ingress_rule(
+                                ec2.Peer.ipv4(office_ip),
+                                ec2.Port.tcp(3389), "OfficeIP"
+                                )                       
+
+        # RDP Access from Trusted Home IP.   
+        mgmt_sg.add_ingress_rule(
+                                ec2.Peer.ipv4(home_ip),
+                                ec2.Port.tcp(3389), "HomeIP"
+                                )  
+
+        # SSH Access from office IP:
+        mgmt_sg.add_ingress_rule(  
+                                ec2.Peer.ipv4(office_ip),
+                                ec2.Port.tcp(22), "SSH Access from office IP"
+        )
+
+        # SSH Access from office IP:
+        mgmt_sg.add_ingress_rule(  
+                                ec2.Peer.ipv4(home_ip),
+                                ec2.Port.tcp(22), "SSH Access from office IP"
+
+        )
+    
+        # SSH Access to everyone:
+        mgmt_sg.add_egress_rule(
+                                ec2.Peer.any_ipv4(), 
+                                ec2.Port.tcp(22), "SSH Access to ANY IP"
+        )      
+        # HTTP Access to all
+        mgmt_sg.add_egress_rule(
+                                ec2.Peer.any_ipv4(), 
+                                ec2.Port.tcp(80), "HTTP Access to ANY IP"
+        )
+    
+        #HTTPS Access to all:
+
+        mgmt_sg.add_egress_rule(ec2.Peer.any_ipv4(),
+                                ec2.Port.tcp(443), "HTTPS Access to ANY IP"
+        )
+
+    
+        # Webserver: #
            
         WS_SG.connections.allow_from(
            mgmt_sg, ec2.Port.tcp(22), " Allow SSH from Management Server") 
@@ -90,14 +144,22 @@ class Spaghetti_Stack(Stack):
         WS_SG.connections.allow_to_any_ipv4(
             ec2.Port.tcp(443), "Allow HTTPS from Web Server to ALL"
         )
-       
-    # Load Balancer:
-        ws_lb_sg = ec2.SecurityGroup(self, "WebServerLoadBalancerSG",
-                                 vpc=webvpc,
-                                 allow_all_outbound=False
-                                 )
         
-   
+        # Allow Traffic to and from Database:
+        WS_SG.connections.allow_to(db_sg, ec2.Port.tcp(3306), "Allow MySQL from Web Server to Database")
+        WS_SG.connections.allow_from(db_sg, ec2.Port.tcp(3306), "Allow MySQL from Database to Web Server")
+       
+    
+        
+        # DATABASE #
+
+        # Allow connection to and from Web Server:
+        db_sg.connections.allow_from(WS_SG, ec2.Port.tcp(3306), "Allow MySQL from Web Server to Database")
+        db_sg.connections.allow_to(WS_SG, ec2.Port.tcp(3306), "Allow MySQL from Database to Web Server")
+
+        # Allow connection to and from Management Server:
+        db_sg.connections.allow_to(mgmt_sg, ec2.Port.tcp(3306), "Allow MySQL from Database to Management Server")
+        db_sg.connections.allow_from(mgmt_sg, ec2.Port.tcp(3306), "Allow MySQL from Management Server to Database")
     #############
     # Instances #
     #############
@@ -110,6 +172,10 @@ class Spaghetti_Stack(Stack):
             instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.latest_windows(ec2.WindowsVersion.WINDOWS_SERVER_2019_ENGLISH_FULL_BASE),
             security_group=mgmt_sg,
+            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
+            vpc=self.mgmtvpc,
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
+            user_data=ec2.UserData.custom(win_userdata),
             block_devices=[
                 ec2.BlockDevice(
                     device_name="/dev/sda1",
@@ -119,12 +185,9 @@ class Spaghetti_Stack(Stack):
                         delete_on_termination=True,
                     )
                 )],
+            )
 
-            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
-            vpc=self.mgmtvpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
-            
-        )
+       
     # Output public IP of Management Server:
         CfnOutput(self, "MGMTServer IP:", value=mgmtserver_instance.instance_public_ip)
 
@@ -134,7 +197,7 @@ class Spaghetti_Stack(Stack):
             self,
             "Webserver",
             vpc=webvpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),  # Use private isolated subnet
+            vpc_subnets=ec2.SubnetSelection(subnet_group_name="Database"),  # Use private isolated subnet
             security_group=WS_SG,
             instance_type = ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.generic_linux({"eu-central-1": AMI_image}),
@@ -142,6 +205,7 @@ class Spaghetti_Stack(Stack):
             min_capacity=min_capacity,
             max_capacity=max_capacity,
             health_check=autoscaling.HealthCheck.elb(grace=Duration.seconds(60)),
+           
             
 
          )
@@ -150,8 +214,7 @@ class Spaghetti_Stack(Stack):
             target_utilization_percent=80,
         )
         
-        #CfnOutput(self, "WebServer_Private_IP", value=webserver_instance.WebServer_Private_IP)
-   
+           
     ################################
     # Load Balancer for Webserver: #
     ################################
@@ -229,11 +292,59 @@ class Spaghetti_Stack(Stack):
                                 vpc_peering_connection_id=Peering_connection.ref,
                                 )
 
-        
+    # Webserver to VPC-Peering:    
         webserver_rt = ec2.CfnRoute(self, "WebServerRoute",
                                 route_table_id=webvpc.isolated_subnets[1].route_table.route_table_id,
                                 destination_cidr_block=mgmt_vpc_cidr,
                                 vpc_peering_connection_id=Peering_connection.ref,
                                 )
         
-        CfnOutput(self, "External_IP_ADDED_TO_TRUSTED_LIST:", value=ext_ip)
+        CfnOutput(self, "Office_Ip_Added_To_Trusted_List:", value=office_ip)
+        CfnOutput(self, "Home_Ip_Added_To_Trusted_List:", value=home_ip)
+
+    ###########
+    # Backups #
+    ###########
+
+    # Create a backup plan for MGMT Server EBS Volume:
+        backup_vault = backup.BackupVault(self, "Cloud10Backup",
+                                        backup_vault_name="BackupVaultCloud10",
+                                        removal_policy=cdk.RemovalPolicy.DESTROY
+                                        )
+
+
+        backup_plan = backup.BackupPlan(self, "MGMTBackupPlan",
+                                        backup_plan_name="MGMTBackup",
+                                        backup_vault=backup_vault,
+                                        )
+        backup_plan.add_selection("MGMTBackupSelection",
+                                    resources=[backup.BackupResource.from_ec2_instance(mgmtserver_instance)],
+                                    
+                                    )
+        backup_rule = backup_plan.add_rule(backup.BackupPlanRule(
+                                            delete_after=Duration.days(7),
+                                            start_window=Duration.minutes(60),
+                                            completion_window=Duration.minutes(120),
+                                            # Set time is in UTC! NL Summertime = UTC +2, Wintertime = UTC +1
+                                            schedule_expression=events.Schedule.cron(
+                                                minute="00",
+                                                hour="22",))
+                                                )
+                                            
+        
+    ############
+    # Database #
+    ############
+
+    # Add aurora DB To Private_Isolated subnet on the webserver vpc:
+        webserver_db = rds.ServerlessCluster(self, "WebServerDB",
+                                                engine=rds.DatabaseClusterEngine.AURORA_MYSQL,
+                                                vpc=webvpc,
+                                                default_database_name="Cloud10",
+                                                vpc_subnets=ec2.SubnetSelection(subnet_group_name="Database"),  # Use Database subnet
+                                                security_groups=[db_sg],
+                                                backup_retention=Duration.days(7),
+                                                removal_policy=cdk.RemovalPolicy.SNAPSHOT,
+        )
+                                            
+        
