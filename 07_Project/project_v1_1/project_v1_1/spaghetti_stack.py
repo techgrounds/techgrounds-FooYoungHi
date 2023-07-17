@@ -160,6 +160,7 @@ class Spaghetti_Stack(Stack):
         # Allow connection to and from Management Server:
         db_sg.connections.allow_to(mgmt_sg, ec2.Port.tcp(3306), "Allow MySQL from Database to Management Server")
         db_sg.connections.allow_from(mgmt_sg, ec2.Port.tcp(3306), "Allow MySQL from Management Server to Database")
+    
     #############
     # Instances #
     #############
@@ -238,7 +239,7 @@ class Spaghetti_Stack(Stack):
                                                     health_check=elbv2.HealthCheck( 
                                                                                     port="80",
                                                                                     protocol=elbv2.Protocol.HTTP,
-                                                                                    path="/healthcheck.php",
+                                                                                    path="/",
                                                                                     timeout=Duration.seconds(5),
                                                                                     healthy_threshold_count=2,
                                                                                     unhealthy_threshold_count=6,
@@ -283,18 +284,16 @@ class Spaghetti_Stack(Stack):
     ################
     # Route Tables #
     ################
-    # Configure MGMT Route
-
-    # MGMT Server to VPC-Peering:
+    
+    # MGMT Server to VPC-Peering to webserver:
         mgmt_rt = ec2.CfnRoute(self, "MGMTRoute",
                                 route_table_id=mgmtvpc.public_subnets[0].route_table.route_table_id,
                                 destination_cidr_block=web_vpc_cidr,
                                 vpc_peering_connection_id=Peering_connection.ref,
                                 )
-
-    # Webserver to VPC-Peering:    
+    # Webserver to VPC-Peering to MGMT Server:    
         webserver_rt = ec2.CfnRoute(self, "WebServerRoute",
-                                route_table_id=webvpc.isolated_subnets[1].route_table.route_table_id,
+                                route_table_id=webvpc.isolated_subnets[0].route_table.route_table_id,
                                 destination_cidr_block=mgmt_vpc_cidr,
                                 vpc_peering_connection_id=Peering_connection.ref,
                                 )
@@ -336,11 +335,10 @@ class Spaghetti_Stack(Stack):
     # Database #
     ############
 
-    # Add aurora DB To Private_Isolated subnet on the webserver vpc:
+    # Add Aurora DB To Private_Isolated subnet on the webserver vpc:
         webserver_db = rds.ServerlessCluster(self, "WebServerDB",
                                                 engine=rds.DatabaseClusterEngine.AURORA_MYSQL,
                                                 vpc=webvpc,
-                                                default_database_name="Cloud10",
                                                 vpc_subnets=ec2.SubnetSelection(subnet_group_name="Database"),  # Use Database subnet
                                                 security_groups=[db_sg],
                                                 backup_retention=Duration.days(7),

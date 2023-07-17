@@ -1,7 +1,9 @@
 #!/bin/bash
-# Install Apache Web Server and PHP
-yum install -y httpd php
+# Install Apache Web Server, PHP, and MariaDB
+yum update -y
+yum upgrade -y
+yum install -y httpd php mariadb
 # Turn on web server
 chkconfig httpd on
 service httpd start
-touch /var/www/html/healthcheck.php #needed for the health check, do not remove
+cat > /var/www/html/index.php "Het Werkt" # Create a file on the root to make the health checks work.

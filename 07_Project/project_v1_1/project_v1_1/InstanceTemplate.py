@@ -6,7 +6,7 @@ from project_v1_1.config import volume_size_web
 
 
 
-class EC2_Template(Stack):
+class WS_Template(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 

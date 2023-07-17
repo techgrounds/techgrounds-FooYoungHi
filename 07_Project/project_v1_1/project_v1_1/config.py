@@ -10,7 +10,7 @@ deployment_region = cdk.Environment(
 # Change these BEFORE deployment:
 office_ip = "193.32.249.135/32"         # Trusted IP from the Office
 home_ip = "192.169.2.1/32"              # Trusted IP from Home
-AMI_image = "ami-05414bda261c0e7aa"     # AMI ID for the WebServer
+AMI_image = "ami-01bdc1b8d0dad4cd8"     # AMI ID for the WebServer
 domain_ws = "cloud10.dannystammers.nl"  # Domain for your webserver certificate
 
 

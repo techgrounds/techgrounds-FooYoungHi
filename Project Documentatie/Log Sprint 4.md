@@ -56,3 +56,23 @@ Goed gekeken naar de API guide van AWS en het in combinatie met Cloud Whisperer 
 
 ### Learnings:
 Ondanks dat de rest van het team voor een andere oplossing heeft gekozen, gewoon mijn instinct gevolgd en een oplossing gekozen die volgens mij het verstandigst is.
+
+---
+## Log vrijdag 14 Juli 2023
+
+### Dagverslag:
+Vandaag de hele dag bezig geweest met een oplossing zoeken om de database te kunnen benaderen door zowel de webserver als de management server.
+
+### Obstakels:
+Het maken van een 'userdata' scrips voor windows is een stuk lastiger dan bij linux, aangezien er een appstore ontbreekt.
+
+### Oplossingen:
+Voorlopig is een handmatige install het makkelijkst. Niet de mooiste oplossing, maar het werkt.
+
+### Learnings:
+Soms is de MVP het maximaal haalbare.
+
+---
+
+## Einde Sprint
+Op een paar kleine dingen na is het project klaar als MVP. Volgende sprint de puntjes op de i zetten.
