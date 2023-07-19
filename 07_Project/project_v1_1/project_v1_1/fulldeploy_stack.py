@@ -33,7 +33,7 @@ class Deploy_Stack(Stack):
                            ],
                            )
         self.webvpc = webvpc
-
+           
 
     # MGMT VPC:
         self.mgmtvpc = ec2.Vpc(self, "MGMTVPC",
@@ -48,7 +48,8 @@ class Deploy_Stack(Stack):
                            nat_gateways=0,
         )
         mgmtvpc = self.mgmtvpc
-    
+        
+
     # VPC Peering:
         Peering_connection = ec2.CfnVPCPeeringConnection(self, "Cloud10VPCPeer",
             peer_vpc_id=self.mgmtvpc.vpc_id,
@@ -56,6 +57,249 @@ class Deploy_Stack(Stack):
 
     
         )
+
+    ########
+    # NACL #
+    ########
+
+    # Create Network ACL for the webserver/DB:
+        webnacl = ec2.NetworkAcl(self, "WS_DB_NACL",
+                                    network_acl_name="WS_DB_NACL",
+                                    vpc=self.webvpc,
+                                    subnet_selection=ec2.SubnetSelection(
+                                        one_per_az =True,
+                                        subnet_type = ec2.SubnetType.PRIVATE_ISOLATED,
+                                            )                                    
+                                )
+        
+        # INGRESS:
+        
+        # Add SSH access from MGMT server:
+        webnacl.add_entry(
+            "WS_DB_NACL_SSH_IN",
+            rule_number=100,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(mgmtvpc.vpc_cidr_block),
+        )
+        
+        # Add HTTP access to all:
+        webnacl.add_entry(
+            "WS_DB_NACL_HTTP_IN",
+            rule_number=201,
+            traffic=ec2.AclTraffic.tcp_port(80),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+
+        # Add Ephemeral IP-range access from mgmt server:
+        webnacl.add_entry(
+            "WS_DB_NACL_EPHEMERAL_IN",
+            rule_number=500,
+            traffic=ec2.AclTraffic.tcp_port_range(1024, 65535),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+
+        # EGRESS:
+        
+        # Add SSH access to mgmt server:
+        webnacl.add_entry(
+            "WS_DB_NACL_SSH_OUT",
+            rule_number=100,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(mgmtvpc.vpc_cidr_block),
+        )
+
+       # Add HTTP access to all:
+        webnacl.add_entry(
+            "WS_DB_NACL_HTTP_OUT",
+            rule_number=300,
+            traffic=ec2.AclTraffic.tcp_port(80),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+        
+        # Add HTTPS access to all:
+        webnacl.add_entry(
+            "WS_DB_NACL_HTTPS_OUT",
+            rule_number=400,
+            traffic=ec2.AclTraffic.tcp_port(443),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4()
+        )
+
+        # Add Ephemeral IP-range access to mgmt server:
+        webnacl.add_entry(
+            "WS_DB_NACL_EPHEMERAL_OUT",
+            rule_number=500,
+            traffic=ec2.AclTraffic.tcp_port_range(1024, 65535),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+
+    # Create Network ACL for the mgmt VPC:
+        mgmtnacl = ec2.NetworkAcl(self, "MGMT_NACL",
+                                    network_acl_name="MGMT_NACL",
+                                    vpc=self.mgmtvpc,
+                                    subnet_selection=ec2.SubnetSelection(
+                                    one_per_az =True,
+                                    subnets = mgmtvpc.public_subnets
+                                                )
+        )
+        
+        # INGRESS:
+
+        # Add SSH access from Office:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_SSH_IN_OFFICE",
+            rule_number=100,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(office_ip),
+        )
+        
+        # Add SSH access from Home:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_SSH_IN_HOME",
+            rule_number=101,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(home_ip),
+        )
+
+        # Add DB access from DB subnet:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_DB_IN",
+            rule_number=200,
+            traffic=ec2.AclTraffic.tcp_port(3306),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(webvpc.vpc_cidr_block),
+        )
+
+         # Add RDP access from Office:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_RDP_IN_OFFICE",
+            rule_number=300,
+            traffic=ec2.AclTraffic.tcp_port(3389),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(office_ip),
+        )
+        
+        # Add RDP access from Home:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_RDP_IN_HOME",
+            rule_number=350,
+            traffic=ec2.AclTraffic.tcp_port(3389),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(home_ip),
+        )
+
+        # Add Ephemeral IP-range access from all:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_EPHEMERAL_IN",
+            rule_number=500,
+            traffic=ec2.AclTraffic.tcp_port_range(1024, 65535),
+            direction=ec2.TrafficDirection.INGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+
+        # EGRESS:
+        
+        # Add SSH access to web server:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_SSH_OUT",
+            rule_number=100,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(webvpc.vpc_cidr_block),
+        )
+
+        # Add SSH access to Office IP:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_SSH_OUT_OFFICE",
+            rule_number=101,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(office_ip),
+        )
+        
+        # Add SSH access to Home IP:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_SSH_OUT_HOME",
+            rule_number=102,
+            traffic=ec2.AclTraffic.tcp_port(22),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(home_ip),
+        )
+
+        # Add access to DB subnet:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_DB_OUT",
+            rule_number=200,
+            traffic=ec2.AclTraffic.tcp_port(3306),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.ipv4(webvpc.vpc_cidr_block),
+        )
+       
+        # Add RDP access to all:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_RDP_OUT",
+            rule_number=300,
+            traffic=ec2.AclTraffic.tcp_port(3389),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+      
+        # Add HTTP access to all:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_HTTP_OUT",
+            rule_number=600,
+            traffic=ec2.AclTraffic.tcp_port(80),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+        
+        # Add HTTPS access to all:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_HTTPS_OUT",
+            rule_number=400,
+            traffic=ec2.AclTraffic.tcp_port(443),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4()
+        )
+        
+         # Add Ephemeral IP-range access to all:
+        mgmtnacl.add_entry(
+            "MGMT_NACL_EPHEMERAL_OUT",
+            rule_number=500,
+            traffic=ec2.AclTraffic.tcp_port_range(1024, 65535),
+            direction=ec2.TrafficDirection.EGRESS,
+            rule_action=ec2.Action.ALLOW,
+            cidr=ec2.AclCidr.any_ipv4(),
+        )
+
 
     ####################
     # Security Groups: #
@@ -173,7 +417,7 @@ class Deploy_Stack(Stack):
             instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.latest_windows(ec2.WindowsVersion.WINDOWS_SERVER_2019_ENGLISH_FULL_BASE),
             security_group=mgmt_sg,
-            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!
+            key_name= key_name, # Imports the key pair. Make sure you create the key pair first!
             vpc=self.mgmtvpc,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),  # Use public subnet
             user_data=ec2.UserData.custom(win_userdata),
@@ -202,7 +446,7 @@ class Deploy_Stack(Stack):
             security_group=WS_SG,
             instance_type = ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
             machine_image=ec2.MachineImage.generic_linux({"eu-central-1": AMI_image}),
-            key_name="WebServerKey", # Imports the key pair. Make sure you create the key pair first!')
+            key_name= key_name, # Imports the key pair. Make sure you create the key pair first!')
             min_capacity=min_capacity,
             max_capacity=max_capacity,
             health_check=autoscaling.HealthCheck.elb(grace=Duration.seconds(60)),
@@ -210,11 +454,31 @@ class Deploy_Stack(Stack):
             
 
          )
-        webserver_instance.scale_on_cpu_utilization(
-            'CPU-watch',
-            target_utilization_percent=80,
-        )
+        # webserver_instance.scale_on_cpu_utilization(
+        #     'CPU-watch',
+        #     target_utilization_percent=80,
+        # )
         
+         # Create a custom metric for CPU utilization
+        cpu_metric = cloudwatch.Metric(
+            namespace="AWS/EC2",
+            metric_name="CPUUtilization",
+            dimensions_map={"AutoScalingGroupName": webserver_instance.auto_scaling_group_name},
+            statistic="Average",
+        )
+
+        # Create a step scaling policy
+        step_scaling_policy = autoscaling.StepScalingPolicy(
+            self,
+            "StepScalingPolicy",
+            auto_scaling_group=webserver_instance,
+            metric=cpu_metric,
+            adjustment_type=autoscaling.AdjustmentType.CHANGE_IN_CAPACITY,
+            scaling_steps=[
+                autoscaling.ScalingInterval(lower=0, upper=40, change=-1),
+                autoscaling.ScalingInterval(lower=70, change=1),
+            ],
+        )
            
     ################################
     # Load Balancer for Webserver: #
@@ -291,13 +555,19 @@ class Deploy_Stack(Stack):
                                 destination_cidr_block=web_vpc_cidr,
                                 vpc_peering_connection_id=Peering_connection.ref,
                                 )
-    # Webserver to VPC-Peering to MGMT Server:    
+    # DB Subnet to VPC-Peering to MGMT Server:    
         webserver_rt = ec2.CfnRoute(self, "WebServerRoute",
                                 route_table_id=webvpc.isolated_subnets[0].route_table.route_table_id,
                                 destination_cidr_block=mgmt_vpc_cidr,
                                 vpc_peering_connection_id=Peering_connection.ref,
                                 )
         
+        webserver_rt2 = ec2.CfnRoute(self, "WebServerRoute2",
+                                route_table_id=webvpc.isolated_subnets[1].route_table.route_table_id,
+                                destination_cidr_block=mgmt_vpc_cidr,
+                                vpc_peering_connection_id=Peering_connection.ref,
+                                )
+
         CfnOutput(self, "Office_Ip_Added_To_Trusted_List:", value=office_ip)
         CfnOutput(self, "Home_Ip_Added_To_Trusted_List:", value=home_ip)
 

@@ -8,11 +8,11 @@ deployment_region = cdk.Environment(
 )
 
 # Change these BEFORE deployment:
-office_ip = "193.32.249.135/32"         # Trusted IP from the Office
-home_ip = "192.169.2.1/32"              # Trusted IP from Home
-AMI_image = "ami-01bdc1b8d0dad4cd8"     # AMI ID for the WebServer
-domain_ws = "cloud10.dannystammers.nl"  # Domain for your webserver certificate
-
+office_ip = "<insert IP>"               # Trusted IP from the Office
+home_ip = "<insert IP"                  # Trusted IP from Home
+AMI_image = "<insert AMI ID>"           # AMI ID for the WebServer
+domain_ws = "<insert domain name>"      # Domain for your webserver certificate
+key_name = "<insert key name>"
 
 # Change at own risk:
 
@@ -41,5 +41,47 @@ win_userdata = """
     
     # If the firewall rule is not configured, run the following command
     New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
-    </powershell>
-    """
+   
+   # Disable IE ESC for Administrators
+    $AdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
+    $AdminValueName = "IsInstalled"
+    Set-ItemProperty -Path $AdminKey -Name $AdminValueName -Value 0
+
+    # Disable IE ESC for Users
+    $UserKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
+    $UserValueName = "IsInstalled"
+    Set-ItemProperty -Path $UserKey -Name $UserValueName -Value 0
+
+    # Restart Windows Explorer to apply the changes
+    Stop-Process -Name explorer -Force
+    Start-Sleep -Seconds 3
+    Start-Process -FilePath explorer
+
+
+    # Install Chocolatey
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+    # Update the package list
+    choco upgrade chocolatey -y
+
+    # Install MySQL Workbench
+    choco install mysql.workbench -y
+
+    # Re-enable IE ESC for Administrators
+    $AdminKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
+    $AdminValueName = "IsInstalled"
+    Set-ItemProperty -Path $AdminKey -Name $AdminValueName -Value 1
+
+    # Re-enable IE ESC for Users
+    $UserKey = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}"
+    $UserValueName = "IsInstalled"
+    Set-ItemProperty -Path $UserKey -Name $UserValueName -Value 1
+
+    # Restart Windows Explorer to apply the changes
+    Stop-Process -Name explorer -Force
+    Start-Sleep -Seconds 3
+    Start-Process -FilePath explorer
+</powershell>
+        """
