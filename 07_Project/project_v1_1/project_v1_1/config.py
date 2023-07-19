@@ -1,29 +1,27 @@
 import aws_cdk as cdk
 import aws_cdk.aws_ec2 as ec2
 
-# Region & Account:
+# Change these BEFORE deployment:
 deployment_region = cdk.Environment(
-    account="835956440930", # Your AWS Account ID
+    account="<insert your account ID", # Your AWS Account ID
     region="eu-central-1" # The preferred region for your deployment
 )
-
-# Change these BEFORE deployment:
 office_ip = "<insert IP>"               # Trusted IP from the Office
 home_ip = "<insert IP"                  # Trusted IP from Home
 AMI_image = "<insert AMI ID>"           # AMI ID for the WebServer
 domain_ws = "<insert domain name>"      # Domain for your webserver certificate
-key_name = "<insert key name>"
+key_name = "<insert key name>"          # Don't forget to create the key with te .sh file. Key name is caps sensitive.
 
 # Change at own risk:
 
-min_capacity = 1 # Minimum number of EC2 instances to maintain
-max_capacity = 3 # Maximum number of EC2 instances to maintain
-web_vpc_cidr = "10.10.10.0/24" # CIDR block for the WebServer VPC
-mgmt_vpc_cidr = "10.20.20.0/24" # CIDR block for the Management VPC
-web_az = 2 # Amount of AZs in WebVPC
-mgmt_az = 1 # Amount of AZs in MGMTVPC
-volume_size_web = 8 # Size of the EBS volume for the WebServer
-volume_size_mgmt = 30 # Size of the EBS volume for the MGMTServer
+min_capacity = 1                        # Minimum number of EC2 instances to maintain
+max_capacity = 3                        # Maximum number of EC2 instances to maintain
+web_vpc_cidr = "10.10.10.0/24"          # CIDR block for the WebServer VPC
+mgmt_vpc_cidr = "10.20.20.0/24"         # CIDR block for the Management VPC
+web_az = 2                              # Amount of AZs in WebVPC
+mgmt_az = 1                             # Amount of AZs in MGMTVPC
+volume_size_web = 8                     # Size of the EBS volume for the WebServer
+volume_size_mgmt = 30                   # Size of the EBS volume for the MGMTServer
 
 win_userdata = """
 <powershell>

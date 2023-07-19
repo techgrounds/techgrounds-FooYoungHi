@@ -454,12 +454,7 @@ class Deploy_Stack(Stack):
             
 
          )
-        # webserver_instance.scale_on_cpu_utilization(
-        #     'CPU-watch',
-        #     target_utilization_percent=80,
-        # )
-        
-         # Create a custom metric for CPU utilization
+        # Create a custom metric for CPU utilization
         cpu_metric = cloudwatch.Metric(
             namespace="AWS/EC2",
             metric_name="CPUUtilization",
