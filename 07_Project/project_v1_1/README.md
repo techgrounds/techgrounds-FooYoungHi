@@ -6,7 +6,7 @@ Zorg er voor dat het systeem waar de deployment plaats vindt alle nodige softwar
 
 ## Key pair aanmaken voor SSH toegang:
 Maak een key pair aan met keypair.sh, die in dezelfde folder staat als dit document. Vergeet niet eerst het bestand te openen met een text-editor en de naam van de keypair in te vullen. Het private-key.pem bestand wordt opgeslagen in de map waar het script is uitgevoerd.
-![](/00_inlcudes/project/KeyPair.png)
+![](/00_includes/project/KeyPair.png)
 
 
 ## Webserver Image aanmaken:
